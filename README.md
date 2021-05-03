@@ -8,7 +8,7 @@ I'll try to update it with a GUI to reduce chaos (because every second there are
 
 Currently, you can only clone this repo and run the script locally.
 
-`git cloen https://github.com/MoPoRem/FileDog.git
+`git cloen https://github.com/MoPoRem/FileDog.git\n`
 cd FileDoge/src
 python watchdog.py`
 
