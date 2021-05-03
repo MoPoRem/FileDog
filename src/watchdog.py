@@ -11,9 +11,10 @@ import configparser
 
 
 
-class Watcher():
+class Watcher(threading.Thread):
 
     def __init__(self, path_to_watch):
+        self.run = True
         self.path_to_watch = path_to_watch
         self.config_file = configparser.ConfigParser()
         self.ACTIONS = {
@@ -25,29 +26,55 @@ class Watcher():
         }
 
 
+    def command(self, cmd):
+        cmd_list = cmd.split(" ")
+        if cmd_list[0].lower() == 'kill':
+            print(f"Kill command issued for {self.path_to_watch}")
+            self.run = False
+
+        # TODO: DIC and separate function for each separate setting
+        if cmd_list[0].lower() == 'ignore':
+            if len(cmd_list) < 3 :
+                print("Missing required arguments.")
+            self.setConfig(cmd_list[1], cmd_list[2])
+
+
+
     def ignoreRegexCreator(self):
-        regComp = ''
-        if self.config['IGNORE_BROWSER']:
+        regComp = 'a^'
+        if int(self.config['IGNORE_BROWSER']) == 1:
             browsers = {
                 'firefox': r"(\\Users\\.*\\AppData\\.*\\Mozilla)",
                 'brave': r"(\\Users\\.*\\AppData\\.*\\BraveSoftware)",
-
             }
             regComp = '|'.join(browsers.values())
         self.regex = re.compile(regComp, re.IGNORECASE)
 
 
+
     def getConfig(self):
-        self.config_file.read('config.ini')
-        self.config = {}
+        self.config_file.read('settings.ini')
+        if not hasattr(self, 'config'):
+            self.config = {}
         if 'IGNORE' in self.config_file:
-            self.config['IGNORE_BROWSER'] = self.config_file['IGNORE'].getint(['IGNORE_BROWSER'], 1)
+            self.config['IGNORE_BROWSER'] = self.config_file['IGNORE'].getint('IGNORE_BROWSER', 1)
         else:
             self.config['IGNORE_BROWSER'] = 1
             self.config_file['IGNORE'] = {}
             self.config_file['IGNORE']['IGNORE_BROWSER'] = '1'
         # print(f"Configs:\nIgnore Browsers:{self.config['IGNORE_BROWSER']}")
         self.ignoreRegexCreator()
+        with open('settings.ini', 'w') as configfile:
+            self.config_file.write(configfile)
+
+
+    def setConfig(self, attr, value):
+        if attr == 'browser':
+            self.config['IGNORE_BROWSER'] = value
+            print(f"Browser ignore set to: {self.config['IGNORE_BROWSER']}")
+            self.ignoreRegexCreator()
+        return True
+
 
 
     def start(self):
@@ -63,7 +90,7 @@ class Watcher():
           win32con.FILE_FLAG_BACKUP_SEMANTICS,
           None
         )
-        while 1:
+        while self.run:
             results = win32file.ReadDirectoryChangesW(
             hDir,
             1024,
@@ -89,6 +116,13 @@ class Watcher():
                     print(s)
 
 
+def get_all_drives():
+    drives = win32api.GetLogicalDriveStrings()
+    drives = [d for d in drives.split('\000') if os.path.isdir(d)]
+    return drives
+
+
+
 
 def main():
     ptw = input("Enter a path ('ALL' to watch all drives/ seperate paths with space for multiple paths):")
@@ -101,14 +135,15 @@ def main():
                 if not os.path.isdir(path):
                     print(f"{path_to_watch=} is not a valid directory")
                     path_to_watch = input("Please enter a valid directory to watch:")
+                    if path_to_watch == 'all':
+                        ptw = 'all'
+                        break
+                    path_to_watch = [os.path.abspath(path) for path in path_to_watch.split(' ')]
                     fl = False
-            if fl:
-                break
-
+            if fl: break
     watchers = []
     if ptw.lower() == 'all':
-        drives = win32api.GetLogicalDriveStrings()
-        drives = [d for d in drives.split('\000') if os.path.isdir(d)]
+        drives = get_all_drives()
         for drive in drives:
             watchers.append(Watcher(drive))
     else:
@@ -121,7 +156,9 @@ def main():
         threads.append(x)
         x.start()
     while 1:
-        input("Enter action:")
+        cmd = input("Enter action:")
+        for watcher in watchers:
+            watcher.command(cmd)
 
 
 
