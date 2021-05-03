@@ -14,7 +14,7 @@ cd FileDoge/src
 python watchdog.py
 ```
 
-and thats it (if you have the requuirements, obviously)
+and thats it (if you have the requirements, obviously)
 
 
 ## Requirements
