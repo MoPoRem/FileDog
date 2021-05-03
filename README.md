@@ -8,9 +8,11 @@ I'll try to update it with a GUI to reduce chaos (because every second there are
 
 Currently, you can only clone this repo and run the script locally.
 
-```git cloen https://github.com/MoPoRem/FileDog.git
+```bash
+git cloen https://github.com/MoPoRem/FileDog.git
 cd FileDoge/src
-python watchdog.py```
+python watchdog.py
+```
 
 and thats it (if you have the requuirements, obviously)
 
@@ -29,7 +31,9 @@ you can also separate paths with space
 
 It will ignore all browser files by default, but you can edit that in the settings.
 
-`Enter a path ('ALL' to watch all drives/ seperate paths with space for multiple paths):`
-`>> C:\ D:\`
-`Starting watcher for directory: C:\...`
-`Starting watcher for directory: D:\...`
+```bash
+Enter a path ('ALL' to watch all drives/ seperate paths with space for multiple paths):
+>> C:\ D:\
+Starting watcher for directory: C:\...
+Starting watcher for directory: D:\...
+```
