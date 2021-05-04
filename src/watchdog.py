@@ -139,7 +139,7 @@ def main():
             fl = True
             for path in path_to_watch:
                 if not os.path.isdir(path):
-                    print(f"{path_to_watch=} is not a valid directory")
+                    print(f"{path_to_watch} is not a valid directory")
                     path_to_watch = input("Please enter a valid directory to watch:")
                     if path_to_watch == 'all':
                         ptw = 'all'
