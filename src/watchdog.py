@@ -1,5 +1,6 @@
 # Thanks to Tim Golden for the excellent examples of win32 package
 import os
+import sys
 import threading
 import re
 import win32file
@@ -36,6 +37,10 @@ class Watcher(threading.Thread):
         if cmd_list[0].lower() == 'ignore':
             if len(cmd_list) < 3 :
                 print("Missing required arguments.")
+                return
+            if not cmd_list[3].isdecimal():
+                print("Ignore value most of 0 or 1")
+                return
             self.setConfig(cmd_list[1], cmd_list[2])
 
 
@@ -46,6 +51,7 @@ class Watcher(threading.Thread):
             browsers = {
                 'firefox': r"(\\Users\\.*\\AppData\\.*\\Mozilla)",
                 'brave': r"(\\Users\\.*\\AppData\\.*\\BraveSoftware)",
+                'edge': r"(\\Users\\.*\AppData\.*\\Microsoft\\Edge)"
             }
             regComp = '|'.join(browsers.values())
         self.regex = re.compile(regComp, re.IGNORECASE)
@@ -156,10 +162,17 @@ def main():
         threads.append(x)
         x.start()
     while 1:
-        cmd = input("Enter action:")
-        for watcher in watchers:
-            watcher.command(cmd)
-
+        try:
+            cmd = input("Enter action:")
+            if cmd == 'kill':
+                os._exit(1)
+            for watcher in watchers:
+                watcher.command(cmd)
+        except (KeyboardInterrupt, SystemExit):
+            sys.exit()
+        except Exception as e:
+            print(e)
+            pass
 
 
 if __name__ == '__main__':
